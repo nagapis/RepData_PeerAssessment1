@@ -1,19 +1,15 @@
+# Assignment: Course Project 1
+Neil  
+11 January 2016  
 
----
-title: 'Assignment: Course Project 1'
-author: "Neil"
-date: "11 January 2016"
-output: 
-  html_document: 
-    keep_md: yes
----
 
 #Reproducible Research Project 1
 ##Loading and preprocessing the data
 
 In the below code, I shall be reading in the un-zipped data from the working directory into a dataset called "activity":
 
-```{r}
+
+```r
 activity<-read.csv(file="activity.csv")
 activity$date<-as.Date(activity$date)
 ```
@@ -24,25 +20,39 @@ activity$date<-as.Date(activity$date)
 
 I shall use the 'aggregate' function to find the total steps per day:
 
-```{r}
+
+```r
 aggdata <-aggregate(activity$steps, by=list(activity$date), FUN=sum, na.rm=TRUE)
 ```
 
 ###Make a histogram of the total number of steps taken each day:
 
-```{r}
+
+```r
 hist(aggdata$x, main = paste("Total Daily Steps"), col="blue", xlab="Number of Steps")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+
 The mean daily steps is:
-```{r}
+
+```r
 mean(aggdata$x)
+```
+
+```
+## [1] 9354.23
 ```
 
 
 The median daily steps is: 
-```{r}
+
+```r
 median(aggdata$x)
+```
+
+```
+## [1] 10395
 ```
  
   
@@ -51,18 +61,27 @@ median(aggdata$x)
 
 ###Make a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis):
 
-```{r}
+
+```r
 int_steps <- aggregate(steps ~ interval, activity, mean)
 
 plot(int_steps$interval,int_steps$steps, type="l", xlab="Interval", ylab="Number of Steps",main="Average Number of Steps per Interval")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png) 
+
 ###Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
 
-```{r}
+
+```r
 sort_steps<-int_steps[order(-int_steps$steps),]
 sort_steps[1,]
+```
+
+```
+##     interval    steps
+## 104      835 206.1698
 ```
 
 The 5-minute interval with the greatest number of average steps is interval #835, with a an average of 206 steps.
@@ -74,9 +93,14 @@ The 5-minute interval with the greatest number of average steps is interval #835
 
 Subset the data to only the rows with missing values and then count the number of rows of the new dataset:
 
-```{r}
+
+```r
 NA.rows<-activity[activity$steps=="NA",]
 nrow(NA.rows)
+```
+
+```
+## [1] 2304
 ```
 
 The number of missing values is: 2304.
@@ -88,7 +112,8 @@ I will impute the missing values by assigning the average number of steps for ea
 
 ###Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
-```{r}
+
+```r
 imp_activity <- transform(activity, steps = ifelse(is.na(activity$steps), int_steps$steps[match(activity$interval, int_steps$interval)], activity$steps))
 ```
 
@@ -96,20 +121,33 @@ imp_activity <- transform(activity, steps = ifelse(is.na(activity$steps), int_st
 
 I will use similar code as before:
 
-```{r}
+
+```r
 imp_aggdata <-aggregate(imp_activity$steps, by=list(imp_activity$date), FUN=sum)
 hist(imp_aggdata$x, main = paste("Total Daily Steps (Imputed)"), col="blue", xlab="Number of Steps")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-10-1.png) 
+
 The mean daily steps of the imputed data is:
-```{r}
+
+```r
 mean(imp_aggdata$x)
+```
+
+```
+## [1] 10766.19
 ```
 
 
 The median daily steps of the imputed data is: 
-```{r}
+
+```r
 median(imp_aggdata$x)
+```
+
+```
+## [1] 10766.19
 ```
  
 Comparing the original and imputed values:
@@ -133,7 +171,8 @@ As you can see, there is a very large impact by using imputed values.  This is d
 
 The new factor variable is created below using a 'for loop':
 
-```{r}
+
+```r
 for (i in 1:nrow(imp_activity)) {
     if (weekdays(imp_activity$date[i]) == "Saturday" | weekdays(imp_activity$date[i]) == "Sunday") {
         imp_activity$day_ind[i] = "Weekend"
@@ -148,15 +187,19 @@ imp_activity$day_ind<-as.factor(imp_activity$day_ind)
 
 Recalculating the averages, taking into account the weekend/weekday status:
 
-```{r}
+
+```r
 wd_aggdata <- aggregate(steps ~ interval + day_ind, imp_activity, mean)
 ```
 
 And now, I shall generate the panel/lattice plot below:
 
-```{r}
+
+```r
 library(lattice)
 xyplot(wd_aggdata$steps ~ wd_aggdata$interval|wd_aggdata$day_ind, main="Average Steps per Day by Interval",xlab="Interval", ylab="Steps",layout=c(1,2), type="l")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-15-1.png) 
 
 From inspection, there is a large difference in activity patterns between weekdays and weekends.
